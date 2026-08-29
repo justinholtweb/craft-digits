@@ -1,0 +1,89 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set title = 'Activity'|t('digits') %}
+{% set selectedSubnavItem = 'log' %}
+
+{% block content %}
+    {#
+      Refusals sit next to deliveries rather than on a tab of their own. The question this screen
+      exists to answer is "what happened to this customer", and the answer is usually a refusal
+      between two successes.
+    #}
+    <form method="get" class="flex" style="margin-bottom: 18px; align-items: flex-end; gap: 12px;">
+        {{ forms.select({
+            name: 'event',
+            value: criteria.event ?? '',
+            options: events|keys|map(k => { label: events[k], value: k }),
+        }) }}
+
+        {{ forms.select({
+            name: 'downloadId',
+            value: criteria.downloadId ?? '',
+            options: [{ label: 'Every download'|t('digits'), value: '' }]|merge(downloads|map(d => { label: d.title, value: d.id })),
+        }) }}
+
+        {{ forms.text({
+            name: 'email',
+            value: criteria.email ?? '',
+            placeholder: 'Email'|t('digits'),
+        }) }}
+
+        <button type="submit" class="btn">{{ 'Filter'|t('digits') }}</button>
+    </form>
+
+    {% if rows is empty %}
+        <p class="light">{{ 'Nothing here yet.'|t('digits') }}</p>
+    {% else %}
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ 'When'|t('digits') }}</th>
+                    <th>{{ 'What'|t('digits') }}</th>
+                    <th>{{ 'Download'|t('digits') }}</th>
+                    <th>{{ 'Version'|t('digits') }}</th>
+                    <th>{{ 'Who'|t('digits') }}</th>
+                    <th>{{ 'From'|t('digits') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    <tr>
+                        <td class="light" style="white-space: nowrap;">{{ row.dateCreated|datetime('short') }}</td>
+                        <td>
+                            {% if row.event == 'denied' %}
+                                <span class="status red"></span><span>{{ row.reason ?: 'refused'|t('digits') }}</span>
+                            {% elseif row.event == 'download' %}
+                                <span class="status green"></span><span>{{ 'download'|t('digits') }}</span>
+                            {% else %}
+                                <span class="light">{{ row.event }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ row.downloadTitle ?? '—' }}</td>
+                        <td class="code light">{{ row.versionNumber ?? '—' }}</td>
+                        <td>
+                            {% if row.licenseId %}
+                                <a href="{{ url('digits/licenses/' ~ row.licenseId) }}">{{ row.licenseKey ?: row.email ?: row.licenseId }}</a>
+                            {% else %}
+                                {{ row.email ?? '—' }}
+                            {% endif %}
+                        </td>
+                        <td class="code light">{{ row.ip ?? '—' }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if pageCount > 1 %}
+            <div class="pagination" style="margin-top: 18px;">
+                {% if page > 1 %}
+                    <a class="btn" href="{{ url('digits/log', criteria|merge({ page: page - 1 })) }}">{{ '« Previous'|t('app') }}</a>
+                {% endif %}
+                <span class="light">{{ 'Page {page} of {total}'|t('digits', { page: page, total: pageCount }) }}</span>
+                {% if page < pageCount %}
+                    <a class="btn" href="{{ url('digits/log', criteria|merge({ page: page + 1 })) }}">{{ 'Next »'|t('app') }}</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% endif %}
+{% endblock %}

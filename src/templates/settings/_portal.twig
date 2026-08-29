@@ -1,0 +1,57 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set title = 'Customer portal'|t('digits') %}
+{% set selectedSubnavItem = 'settings' %}
+{% set fullPageForm = true %}
+{% set sidebar = include('digits/settings/_nav', { selectedItem: selectedItem }) %}
+
+{% block content %}
+    <input type="hidden" name="action" value="digits/settings/save">
+    {{ redirectInput('digits/settings/portal') }}
+    <input type="hidden" name="booleans[]" value="enablePortal">
+    <input type="hidden" name="booleans[]" value="allowPortalRequests">
+
+    {% if not allowsPortal %}
+        <div class="readable">
+            <blockquote class="note">
+                <p>{{ 'The customer portal is a Digits Pro feature.'|t('digits') }}</p>
+            </blockquote>
+        </div>
+    {% endif %}
+
+    {{ forms.lightswitchField({
+        label: 'Serve the portal'|t('digits'),
+        id: 'enablePortal',
+        name: 'settings[enablePortal]',
+        on: settings.enablePortal,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Path'|t('digits'),
+        instructions: 'Where the account page lives. Copy `digits/_portal/index.twig` into your own `templates/digits/portal/index.twig` to restyle it — Digits looks for yours first.'|t('digits'),
+        id: 'portalPath',
+        name: 'settings[portalPath]',
+        value: settings.portalPath,
+        class: 'code',
+        errors: settings.getErrors('portalPath'),
+    }) }}
+
+    {{ forms.textField({
+        label: 'Guest link lasts (minutes)'|t('digits'),
+        instructions: 'A guest checkout has no account to sign into, so this link is their access to everything they bought.'|t('digits'),
+        id: 'portalTokenTtl',
+        name: 'settings[portalTokenTtl]',
+        value: settings.portalTokenTtl,
+        size: 8,
+        type: 'number',
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Let people ask for a fresh link'|t('digits'),
+        instructions: 'They enter the address they ordered with. The answer is the same whether or not it has ever bought anything — otherwise this form becomes a way of asking whether somebody is a customer.'|t('digits'),
+        id: 'allowPortalRequests',
+        name: 'settings[allowPortalRequests]',
+        on: settings.allowPortalRequests,
+    }) }}
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set title = 'Downloads & delivery'|t('digits') %}
+{% set selectedSubnavItem = 'settings' %}
+{% set fullPageForm = true %}
+{% set sidebar = include('digits/settings/_nav', { selectedItem: selectedItem }) %}
+
+{% block content %}
+    <input type="hidden" name="action" value="digits/settings/save">
+    {{ redirectInput('digits/settings/downloads') }}
+    <input type="hidden" name="booleans[]" value="bindLinksToIp">
+    <input type="hidden" name="booleans[]" value="forceDownload">
+
+    {% if not hasDownloadsField %}
+        <div class="readable">
+            <blockquote class="note warning">
+                <p>{{ 'Nothing on this site has a Downloads field yet. Add one to a Commerce variant’s field layout to sell a download, or to an entry’s to gate one. Digits will also match a download’s SKU against a line item, but the field is the way that survives a rename.'|t('digits') }}</p>
+            </blockquote>
+        </div>
+    {% endif %}
+
+    <h2>{{ 'Defaults'|t('digits') }}</h2>
+
+    <p class="light">{{ 'Every download can override these. Zero means no limit.'|t('digits') }}</p>
+
+    {{ forms.textField({
+        label: 'Links last (minutes)'|t('digits'),
+        instructions: 'Long enough that somebody who opens the email on a train and downloads at home still gets the file. The download limit is what actually protects it.'|t('digits'),
+        id: 'linkTtl',
+        name: 'settings[linkTtl]',
+        value: settings.linkTtl,
+        size: 8,
+        type: 'number',
+        errors: settings.getErrors('linkTtl'),
+    }) }}
+
+    {{ forms.textField({
+        label: 'Downloads per licence'|t('digits'),
+        id: 'downloadLimit',
+        name: 'settings[downloadLimit]',
+        value: settings.downloadLimit,
+        size: 8,
+        type: 'number',
+    }) }}
+
+    {{ forms.textField({
+        label: 'Access lasts (days)'|t('digits'),
+        id: 'accessDays',
+        name: 'settings[accessDays]',
+        value: settings.accessDays,
+        size: 8,
+        type: 'number',
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Bind links to the address that asked for them'|t('digits'),
+        instructions: 'Leave this off unless the files are expensive. Mobile networks change a visitor’s IP mid-session, so it turns “my download stopped working” into a support queue.'|t('digits'),
+        id: 'bindLinksToIp',
+        name: 'settings[bindLinksToIp]',
+        on: settings.bindLinksToIp,
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'Delivery'|t('digits') }}</h2>
+
+    {{ forms.lightswitchField({
+        label: 'Always send as an attachment'|t('digits'),
+        instructions: 'Off lets a browser display a PDF inline. HTML and SVG are always sent as attachments whatever this says — served inline from your own domain they are a scripting hole.'|t('digits'),
+        id: 'forceDownload',
+        name: 'settings[forceDownload]',
+        on: settings.forceDownload,
+    }) }}
+
+    {{ forms.selectField({
+        label: 'Hand files to the web server'|t('digits'),
+        instructions: 'Much faster for large files, and only works once the server has been told about the paths below. If nothing matches, Digits quietly serves the file through PHP instead of sending an empty response.'|t('digits'),
+        id: 'fileDeliveryMethod',
+        name: 'settings[fileDeliveryMethod]',
+        value: settings.fileDeliveryMethod,
+        options: [
+            { label: 'No — serve through PHP'|t('digits'), value: '' },
+            { label: 'nginx (X-Accel-Redirect)'|t('digits'), value: 'x-accel-redirect' },
+            { label: 'Apache / LiteSpeed (X-Sendfile)'|t('digits'), value: 'x-sendfile' },
+        ],
+    }) }}
+
+    {{ forms.editableTableField({
+        label: 'Internal paths'|t('digits'),
+        instructions: 'Maps a directory on disk to the internal location your server serves it from.'|t('digits'),
+        id: 'internalPaths',
+        name: 'settings[internalPaths]',
+        cols: {
+            path: { heading: 'Path on disk'|t('digits'), type: 'singleline', code: true },
+            location: { heading: 'Internal location'|t('digits'), type: 'singleline', code: true },
+        },
+        rows: settings.internalPaths,
+        addRowLabel: 'Add a path'|t('digits'),
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'Activity log'|t('digits') }}</h2>
+
+    {{ forms.textField({
+        label: 'Keep log rows for (days)'|t('digits'),
+        instructions: 'Zero keeps them forever. The log is what answers “why couldn’t my customer download this” months later.'|t('digits'),
+        id: 'logRetentionDays',
+        name: 'settings[logRetentionDays]',
+        value: settings.logRetentionDays,
+        size: 8,
+        type: 'number',
+    }) }}
+{% endblock %}

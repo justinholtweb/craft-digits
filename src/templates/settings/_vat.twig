@@ -1,0 +1,119 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set title = 'VAT rates'|t('digits') %}
+{% set selectedSubnavItem = 'settings' %}
+{% set sidebar = include('digits/settings/_nav', { selectedItem: selectedItem }) %}
+
+{% block content %}
+    <div class="readable">
+        <p>
+            {{ 'Rates are dated, not current: an invoice raised in March keeps March’s rate after April’s takes effect, including when it is reprinted next year for an auditor. Add a row with a start date rather than editing the old one.'|t('digits') }}
+        </p>
+        {% if seedDate %}
+            <p class="light">
+                {{ 'The rates below were seeded on {date} from the Commission’s published table. Confirm them before your first return — they change by legislation, not by plugin release.'|t('digits', { date: seedDate|date('long') }) }}
+            </p>
+        {% endif %}
+    </div>
+
+    <table class="data fullwidth" style="margin-top: 18px;">
+        <thead>
+            <tr>
+                <th>{{ 'Country'|t('digits') }}</th>
+                <th>{{ 'Rate'|t('digits') }}</th>
+                <th>{{ 'Kind'|t('digits') }}</th>
+                <th>{{ 'From'|t('digits') }}</th>
+                <th>{{ 'Until'|t('digits') }}</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rate in rates %}
+                <tr>
+                    <td>{{ rate.name ?: rate.countryCode }} <span class="light code">{{ rate.countryCode }}</span></td>
+                    <td>{{ rate.label }}</td>
+                    <td class="light">{{ rate.kind }}</td>
+                    <td class="light">{{ rate.effectiveFrom ? rate.effectiveFrom|date('short') : '—' }}</td>
+                    <td class="light">{{ rate.effectiveTo ? rate.effectiveTo|date('short') : '—' }}</td>
+                    <td>
+                        <button type="button" class="btn small delete" data-digits-delete-rate="{{ rate.id }}">{{ 'Delete'|t('app') }}</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2>{{ 'Add a rate'|t('digits') }}</h2>
+
+    <form method="post" accept-charset="UTF-8">
+        {{ csrfInput() }}
+        <input type="hidden" name="action" value="digits/settings/save-rate">
+
+        {{ forms.selectField({
+            label: 'Country'|t('digits'),
+            name: 'countryCode',
+            options: countries,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Rate (%)'|t('digits'),
+            name: 'rate',
+            size: 8,
+            value: '',
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Kind'|t('digits'),
+            name: 'kind',
+            options: [
+                { label: 'Standard'|t('digits'), value: 'standard' },
+                { label: 'Reduced'|t('digits'), value: 'reduced' },
+                { label: 'Zero'|t('digits'), value: 'zero' },
+            ],
+        }) }}
+
+        {{ forms.dateField({ label: 'In force from'|t('digits'), name: 'effectiveFrom' }) }}
+        {{ forms.dateField({ label: 'Until'|t('digits'), name: 'effectiveTo' }) }}
+
+        <button type="submit" class="btn submit">{{ 'Add'|t('digits') }}</button>
+    </form>
+
+    <hr>
+
+    <h2>{{ 'Check a VAT number'|t('digits') }}</h2>
+
+    <div class="flex" style="align-items: flex-end; gap: 12px;">
+        {{ forms.text({ id: 'vat-id-check', placeholder: 'DE123456789', class: 'code' }) }}
+        <button type="button" class="btn" id="vat-id-check-button">{{ 'Check'|t('digits') }}</button>
+    </div>
+    <p id="vat-id-result" class="light" style="margin-top: 8px;"></p>
+
+    {% js %}
+        document.querySelectorAll('[data-digits-delete-rate]').forEach(function(button) {
+            button.addEventListener('click', function() {
+                Craft.sendActionRequest('POST', 'digits/settings/delete-rate', {
+                    data: { id: button.dataset.digitsDeleteRate },
+                }).then(function() { window.location.reload(); });
+            });
+        });
+
+        document.getElementById('vat-id-check-button')?.addEventListener('click', function() {
+            const value = document.getElementById('vat-id-check').value;
+            const result = document.getElementById('vat-id-result');
+
+            result.textContent = {{ 'Checking…'|t('digits')|json_encode|raw }};
+
+            Craft.sendActionRequest('POST', 'digits/settings/check-vat-id', { data: { vatId: value } })
+                .then(function(response) {
+                    const data = response.data;
+                    result.textContent = (data.valid ? '✓ ' : '✗ ') + (data.name || data.vatId) + ' — ' + data.sourceLabel;
+                })
+                .catch(function() {
+                    result.textContent = {{ 'Couldn’t check that number.'|t('digits')|json_encode|raw }};
+                });
+        });
+    {% endjs %}
+{% endblock %}

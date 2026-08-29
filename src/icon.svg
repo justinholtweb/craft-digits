@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Digits' mark: a key that ends in a download arrow.
+
+  The two things this plugin does are "give someone the bytes" and "give someone the right to have
+  them", and neither symbol says it alone — a bare arrow is every download button ever drawn, and a
+  bare key is every login screen. Fused, the bow and teeth read as *entitlement* and the head reads
+  as *delivery*, and the silhouette survives the 16 pixels a control-panel nav icon actually gets
+  because it is one vertical stroke with a hole at the top and a wedge at the bottom.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="50" cy="25" r="15"/>
+  <path d="M50 40 v20"/>
+  <path d="M50 47 h-12"/>
+  <path d="M50 57 h-9"/>
+  <path d="M28 62 h44 L50 92 Z"/>
+</svg>

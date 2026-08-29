@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The solid form, for wherever Craft wants a filled mask rather than a stroked outline.
+
+  Drawn as separate shapes rather than one clever subtracted path: a mask only has to be a
+  silhouette, and five honest primitives render identically in every renderer that ever gets
+  pointed at it.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor" fill-rule="evenodd">
+  <path d="M50 6a19 19 0 1 1 0 38 19 19 0 0 1 0-38Zm0 11a8 8 0 1 0 0 16 8 8 0 0 0 0-16Z"/>
+  <rect x="44" y="40" width="12" height="24" rx="4"/>
+  <rect x="32" y="44" width="14" height="7" rx="3.5"/>
+  <rect x="35" y="55" width="11" height="7" rx="3.5"/>
+  <path d="M28 60h44a4 4 0 0 1 3.2 6.4L53.2 93a4 4 0 0 1-6.4 0L24.8 66.4A4 4 0 0 1 28 60Z"/>
+</svg>

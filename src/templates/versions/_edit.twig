@@ -1,0 +1,142 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set selectedSubnavItem = 'downloads' %}
+{% set fullPageForm = true %}
+{% set crumbs = [
+    { label: 'Digits'|t('digits'), url: url('digits/downloads') },
+    { label: download.title, url: url('digits/downloads/' ~ download.id) },
+] %}
+
+{% block actionButton %}
+    <div class="btngroup">
+        <button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
+        {% if not version.isLive %}
+            <button type="submit" class="btn submit" name="publish" value="1">{{ 'Release'|t('digits') }}</button>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block content %}
+    <input type="hidden" name="action" value="digits/versions/save">
+    <input type="hidden" name="downloadId" value="{{ download.id }}">
+    {% if not isNew %}<input type="hidden" name="versionId" value="{{ version.id }}">{% endif %}
+
+    {{ forms.textField({
+        label: 'Version'|t('digits'),
+        instructions: 'Whatever you call your releases — 2.4.1, 2026-08, Spring. Digits sorts them sensibly and never parses them.'|t('digits'),
+        id: 'version',
+        name: 'version',
+        value: version.version,
+        errors: version.getErrors('version'),
+        class: 'code',
+        required: true,
+        autofocus: true,
+    }) }}
+
+    {{ forms.textareaField({
+        label: 'Release notes'|t('digits'),
+        instructions: 'Shown on the customer’s account page and included in the release email.'|t('digits'),
+        id: 'releaseNotes',
+        name: 'releaseNotes',
+        value: version.releaseNotes,
+        rows: 8,
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'Files'|t('digits') }}</h2>
+
+    <p class="light">
+        {{ 'An asset is a file Digits can actually protect — it can live outside the web root and be handed over one request at a time. A URL is for the very large file you host elsewhere: entitlement is still checked and the download is still counted, but what is behind the URL is only as private as the URL.'|t('digits') }}
+    </p>
+
+    {% if version.getErrors('files') %}
+        <ul class="errors">
+            {% for error in version.getErrors('files') %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+
+    <div id="files">
+        {% for i, file in version.files|default([]) %}
+            {% include 'digits/versions/_filerow' with { i: i, file: file } only %}
+        {% endfor %}
+        {% include 'digits/versions/_filerow' with { i: 'new', file: null } only %}
+    </div>
+{% endblock %}
+
+{% block details %}
+    <div class="meta">
+        {% if version.isLive %}
+            {{ forms.dateField({
+                label: 'Released'|t('digits'),
+                id: 'dateReleased',
+                name: 'dateReleased',
+                value: version.dateReleased,
+                instructions: 'What “updates until March” is measured against.'|t('digits'),
+            }) }}
+        {% else %}
+            <div class="data">
+                <h5 class="heading">{{ 'Status'|t('app') }}</h5>
+                <div class="value">
+                    <span class="status gray"></span>{{ 'Draft — nobody can download it yet'|t('digits') }}
+                </div>
+            </div>
+        {% endif %}
+
+        {% if not version.isLive or not version.isCurrent %}
+            {{ forms.lightswitchField({
+                label: 'Make this the current version'|t('digits'),
+                name: 'makeCurrent',
+                on: true,
+            }) }}
+        {% endif %}
+
+        {% if canNotify %}
+            {{ forms.lightswitchField({
+                label: 'Email licence holders'|t('digits'),
+                instructions: version.isNotified
+                    ? 'Notices already went out for this version. Sending again only reaches the people the first run missed.'|t('digits')
+                    : 'Queued when you release, so a big list does not hold this page open.'|t('digits'),
+                name: 'notify',
+                on: not version.isNotified,
+            }) }}
+        {% endif %}
+    </div>
+
+    {% if not isNew %}
+        <div class="meta read-only">
+            <div class="data">
+                <h5 class="heading">{{ 'Notices sent'|t('digits') }}</h5>
+                <div class="value">{{ noticeCount }}</div>
+            </div>
+            <div class="data">
+                <h5 class="heading">{{ 'Size'|t('digits') }}</h5>
+                <div class="value">{{ version.sizeLabel ?: '—' }}</div>
+            </div>
+        </div>
+
+        <div class="meta">
+            <div class="data">
+                <div class="value">
+                    {# Never a nested form — this posts through Craft's own action helper instead. #}
+                    <button type="button" class="btn small delete" id="delete-version">{{ 'Delete version'|t('digits') }}</button>
+                </div>
+            </div>
+        </div>
+
+        {% js %}
+            document.getElementById('delete-version')?.addEventListener('click', function() {
+                if (!confirm({{ 'Delete this version? The files themselves are not touched.'|t('digits')|json_encode|raw }})) {
+                    return;
+                }
+
+                Craft.sendActionRequest('POST', 'digits/versions/delete', {
+                    data: { versionId: {{ version.id }} },
+                }).then(function() {
+                    window.location.href = {{ url('digits/downloads/' ~ download.id)|json_encode|raw }};
+                });
+            });
+        {% endjs %}
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,282 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set selectedSubnavItem = 'licenses' %}
+{% set fullPageForm = canManage %}
+{% set crumbs = [
+    { label: 'Digits'|t('digits'), url: url('digits/downloads') },
+    { label: 'Licences'|t('digits'), url: url('digits/licenses') },
+] %}
+
+{% block actionButton %}
+    {% if canManage %}
+        <button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <input type="hidden" name="action" value="digits/licenses/save">
+    {% if not isNew %}<input type="hidden" name="licenseId" value="{{ license.id }}">{% endif %}
+    {{ redirectInput('digits/licenses/{id}') }}
+
+    {% if not isNew and license.licenseKey %}
+        {{ forms.textField({
+            label: 'Licence key'|t('digits'),
+            id: 'licenseKey',
+            name: 'licenseKey',
+            value: license.licenseKey,
+            class: 'code',
+            disabled: not plugin.isPro(),
+            instructions: plugin.isPro()
+                ? 'Change it only to import a key issued somewhere else. The old one stops working immediately.'|t('digits')
+                : 'Licence keys are a Digits Pro feature. Lite still issues the licence — it is what makes a download link work — but not a key anybody can type into software.'|t('digits'),
+        }) }}
+    {% endif %}
+
+    {{ forms.textField({
+        label: 'Email'|t('digits'),
+        instructions: 'The identity a guest is recognised by. It does not have to be a Craft account.'|t('digits'),
+        id: 'email',
+        name: 'email',
+        value: license.email,
+        errors: license.getErrors('email'),
+        required: true,
+        type: 'email',
+    }) }}
+
+    {{ forms.textField({
+        label: 'Customer name'|t('digits'),
+        id: 'customerName',
+        name: 'customerName',
+        value: license.customerName,
+    }) }}
+
+    {{ forms.elementSelectField({
+        label: 'Craft account'|t('digits'),
+        instructions: 'Optional. A licence works from the email address alone; linking an account just means it shows up when they sign in.'|t('digits'),
+        id: 'ownerId',
+        name: 'ownerId',
+        elementType: 'craft\\elements\\User',
+        elements: license.owner ? [license.owner] : [],
+        limit: 1,
+    }) }}
+
+    {{ forms.checkboxSelectField({
+        label: 'Unlocks'|t('digits'),
+        id: 'downloadIds',
+        name: 'downloadIds',
+        values: license.downloadIds,
+        errors: license.getErrors('downloadIds'),
+        required: true,
+        options: downloads|map(d => { label: d.title, value: d.id }),
+    }) }}
+
+    {% if license.fieldLayout %}
+        <hr>
+        {{ license.getFieldLayout().createForm(license).render() | raw }}
+    {% endif %}
+
+    <hr>
+
+    {{ forms.textareaField({
+        label: 'Notes'|t('digits'),
+        instructions: 'For your team. Never shown to the customer.'|t('digits'),
+        id: 'notes',
+        name: 'notes',
+        value: license.notes,
+        rows: 4,
+    }) }}
+
+    {% if not isNew and recentLog is not empty %}
+        <hr>
+        <h2>{{ 'Recent activity'|t('digits') }}</h2>
+
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ 'When'|t('digits') }}</th>
+                    <th>{{ 'What'|t('digits') }}</th>
+                    <th>{{ 'File'|t('digits') }}</th>
+                    <th>{{ 'From'|t('digits') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in recentLog %}
+                    <tr>
+                        <td class="light">{{ row.dateCreated|datetime('short') }}</td>
+                        <td>
+                            {% if row.event == 'denied' %}
+                                <span class="status red"></span><span>{{ row.reason }}</span>
+                            {% else %}
+                                {{ row.event }}
+                            {% endif %}
+                        </td>
+                        <td class="light">{{ row.versionNumber ?? '—' }}</td>
+                        <td class="light code">{{ row.ip ?? '—' }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}
+
+{% block details %}
+    <div class="meta">
+        {{ forms.selectField({
+            label: 'Status'|t('app'),
+            id: 'licenseStatus',
+            name: 'licenseStatus',
+            value: license.licenseStatus,
+            options: [
+                { label: 'Active'|t('digits'), value: 'active' },
+                { label: 'Pending payment'|t('digits'), value: 'pending' },
+                { label: 'Disabled'|t('app'), value: 'disabled' },
+                { label: 'Revoked'|t('digits'), value: 'revoked' },
+            ],
+        }) }}
+
+        {{ forms.dateField({
+            label: 'Expires'|t('digits'),
+            instructions: 'Empty is never.'|t('digits'),
+            id: 'expiryDate',
+            name: 'expiryDate',
+            value: license.expiryDate,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Download limit'|t('digits'),
+            instructions: 'Empty follows the download. Zero is unlimited.'|t('digits'),
+            id: 'downloadLimit',
+            name: 'downloadLimit',
+            value: license.downloadLimit,
+            size: 6,
+            type: 'number',
+        }) }}
+
+        {{ forms.textField({
+            label: 'Activation limit'|t('digits'),
+            id: 'activationLimit',
+            name: 'activationLimit',
+            value: license.activationLimit,
+            size: 6,
+            type: 'number',
+        }) }}
+    </div>
+
+    {% if not isNew %}
+        <div class="meta read-only">
+            <div class="data">
+                <h5 class="heading">{{ 'Downloads used'|t('digits') }}</h5>
+                <div class="value">
+                    {{ license.downloadCount }}{% if license.effectiveDownloadLimit > 0 %} / {{ license.effectiveDownloadLimit }}{% endif %}
+                </div>
+            </div>
+            <div class="data">
+                <h5 class="heading">{{ 'Issued'|t('digits') }}</h5>
+                <div class="value">{{ license.issuedDate ? license.issuedDate|datetime('short') : '—' }}</div>
+            </div>
+            <div class="data">
+                <h5 class="heading">{{ 'Source'|t('digits') }}</h5>
+                <div class="value">{{ license.sourceLabel }}</div>
+            </div>
+            {% if license.orderReference %}
+                <div class="data">
+                    <h5 class="heading">{{ 'Order'|t('digits') }}</h5>
+                    <div class="value">
+                        {% if license.orderId %}
+                            <a href="{{ url('commerce/orders/' ~ license.orderId) }}">{{ license.orderReference }}</a>
+                        {% else %}
+                            {{ license.orderReference }}
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            {% if license.revokedDate %}
+                <div class="data">
+                    <h5 class="heading">{{ 'Revoked'|t('digits') }}</h5>
+                    <div class="value">
+                        {{ license.revokedDate|datetime('short') }}
+                        {% if license.revokedReason %}<br><span class="light">{{ license.revokedReason }}</span>{% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if canManage %}
+            {#
+              Secondary actions post through Craft's own action helper rather than through nested
+              forms. A <form> inside the page's form is invalid HTML and silently posts the wrong
+              thing.
+            #}
+            <div class="meta">
+                <div class="data">
+                    <div class="value">
+                        <div class="btngroup">
+                            {% if license.isRevoked %}
+                                <button type="button" class="btn" data-digits-action="digits/licenses/restore">{{ 'Restore'|t('digits') }}</button>
+                            {% else %}
+                                <button type="button" class="btn delete" data-digits-action="digits/licenses/revoke">{{ 'Revoke'|t('digits') }}</button>
+                            {% endif %}
+                            <button type="button" class="btn" data-digits-action="digits/licenses/reset-count">{{ 'Reset count'|t('digits') }}</button>
+                            <button type="button" class="btn" data-digits-action="digits/licenses/extend">{{ 'Extend a year'|t('digits') }}</button>
+                            <button type="button" class="btn" data-digits-action="digits/licenses/resend">{{ 'Resend email'|t('digits') }}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% js %}
+                document.querySelectorAll('[data-digits-action]').forEach(function(button) {
+                    button.addEventListener('click', function() {
+                        Craft.sendActionRequest('POST', button.dataset.digitsAction, {
+                            data: { licenseId: {{ license.id }}, days: 365 },
+                        }).then(function() {
+                            window.location.reload();
+                        });
+                    });
+                });
+            {% endjs %}
+        {% endif %}
+
+        {% if showActivations %}
+            <div class="meta">
+                <div class="data">
+                    <h5 class="heading">{{ 'Activations'|t('digits') }}</h5>
+                    <div class="value">
+                        {% if activations is empty %}
+                            <span class="light">{{ 'None yet'|t('digits') }}</span>
+                        {% else %}
+                            <ul>
+                                {% for activation in activations %}
+                                    <li style="margin-bottom: 6px;">
+                                        <span class="status {{ activation.isActive ? 'green' : 'gray' }}"></span>
+                                        <span class="code">{{ activation.labelOrInstance }}</span>
+                                        {% if activation.isActive and canManage %}
+                                            <button type="button" class="btn small delete"
+                                                    data-digits-deactivate="{{ activation.id }}">{{ 'Remove'|t('digits') }}</button>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% js %}
+                document.querySelectorAll('[data-digits-deactivate]').forEach(function(button) {
+                    button.addEventListener('click', function() {
+                        Craft.sendActionRequest('POST', 'digits/licenses/deactivate', {
+                            data: {
+                                activationId: button.dataset.digitsDeactivate,
+                                licenseId: {{ license.id }},
+                            },
+                        }).then(function() {
+                            window.location.reload();
+                        });
+                    });
+                });
+            {% endjs %}
+        {% endif %}
+    {% endif %}
+{% endblock %}

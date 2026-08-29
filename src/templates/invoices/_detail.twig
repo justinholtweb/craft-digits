@@ -1,0 +1,91 @@
+{% extends '_layouts/cp' %}
+
+{% set selectedSubnavItem = 'invoices' %}
+{% set crumbs = [
+    { label: 'Digits'|t('digits'), url: url('digits/downloads') },
+    { label: 'Invoices'|t('digits'), url: url('digits/invoices') },
+] %}
+
+{% block actionButton %}
+    <button type="button" class="btn" onclick="window.print()">{{ 'Print'|t('digits') }}</button>
+{% endblock %}
+
+{% block content %}
+    {% include 'digits/invoices/_document' with { invoice: invoice, settings: settings } only %}
+{% endblock %}
+
+{% block details %}
+    <div class="meta read-only">
+        <div class="data">
+            <h5 class="heading">{{ 'Status'|t('app') }}</h5>
+            <div class="value">{{ invoice.statusLabel }}</div>
+        </div>
+        <div class="data">
+            <h5 class="heading">{{ 'Treatment'|t('digits') }}</h5>
+            <div class="value">{{ invoice.treatmentLabel }}</div>
+        </div>
+        <div class="data">
+            <h5 class="heading">{{ 'VAT charged by Commerce'|t('digits') }}</h5>
+            <div class="value">
+                {{ invoice.chargedTaxAmount|number_format(2) }}
+                {% if invoice.hasDiscrepancy %}
+                    <br><span class="status orange"></span>
+                    <span class="light">{{ 'differs from {due} by {gap}'|t('digits', {
+                        due: invoice.vatAmount|number_format(2),
+                        gap: invoice.discrepancyAmount|number_format(2),
+                    }) }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="data">
+            <h5 class="heading">{{ 'Evidence'|t('digits') }}</h5>
+            <div class="value">
+                {% if invoice.evidenceConflicts %}
+                    <span class="status red"></span><span>{{ 'Billing and network countries disagree'|t('digits') }}</span>
+                {% elseif invoice.evidenceIsSufficient %}
+                    <span class="status green"></span><span>{{ 'Two matching pieces'|t('digits') }}</span>
+                {% else %}
+                    <span class="status orange"></span><span>{{ 'One piece only'|t('digits') }}</span>
+                {% endif %}
+                <br>
+                <span class="light code">
+                    {{ 'billing'|t('digits') }}: {{ invoice.evidence.billingCountry ?? '—' }} ·
+                    {{ 'network'|t('digits') }}: {{ invoice.evidence.ipCountry ?? '—' }}
+                </span>
+            </div>
+        </div>
+        {% if invoice.buyerVatId %}
+            <div class="data">
+                <h5 class="heading">{{ 'VAT number'|t('digits') }}</h5>
+                <div class="value">
+                    <code>{{ invoice.buyerVatId }}</code><br>
+                    <span class="light">{{ invoice.evidence.vatIdSource ?? 'unchecked'|t('digits') }}</span>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if not invoice.isCreditNote and invoice.status != 'credited' %}
+        <div class="meta">
+            <div class="data">
+                <div class="value">
+                    <button type="button" class="btn delete" id="digits-credit">{{ 'Raise a credit note'|t('digits') }}</button>
+                </div>
+            </div>
+        </div>
+
+        {% js %}
+            document.getElementById('digits-credit')?.addEventListener('click', function() {
+                const reason = prompt({{ 'Why is this being credited?'|t('digits')|json_encode|raw }});
+
+                if (reason === null) {
+                    return;
+                }
+
+                Craft.sendActionRequest('POST', 'digits/invoices/credit', {
+                    data: { invoiceId: {{ invoice.id }}, reason: reason },
+                }).then(function() { window.location.reload(); });
+            });
+        {% endjs %}
+    {% endif %}
+{% endblock %}

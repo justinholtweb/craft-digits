@@ -1,0 +1,188 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set title = 'Invoicing'|t('digits') %}
+{% set selectedSubnavItem = 'settings' %}
+{% set fullPageForm = true %}
+{% set sidebar = include('digits/settings/_nav', { selectedItem: selectedItem }) %}
+
+{% block content %}
+    <input type="hidden" name="action" value="digits/settings/save">
+    {{ redirectInput('digits/settings/invoicing') }}
+    <input type="hidden" name="booleans[]" value="enableInvoicing">
+    <input type="hidden" name="booleans[]" value="validateVatIds">
+
+    <div class="readable">
+        <blockquote class="note">
+            <p>
+                {{ 'Digits determines and documents VAT. It does not charge it — your tax engine decides what a customer pays, and quietly restating that on the invoice is how a shop ends up with books that do not reconcile. What Digits does is work out what the treatment should have been, print it with the wording the directive requires, record what was actually taken beside it, and put the ones that disagree on one screen.'|t('digits') }}
+            </p>
+        </blockquote>
+    </div>
+
+    {% if not allowsInvoicing %}
+        <div class="readable">
+            <blockquote class="note">
+                <p>{{ 'VAT invoicing is a Digits Pro feature.'|t('digits') }}</p>
+            </blockquote>
+        </div>
+    {% endif %}
+
+    {{ forms.lightswitchField({
+        label: 'Raise VAT invoices'|t('digits'),
+        id: 'enableInvoicing',
+        name: 'settings[enableInvoicing]',
+        on: settings.enableInvoicing,
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'You'|t('digits') }}</h2>
+
+    {{ forms.textField({
+        label: 'Trading name'|t('digits'),
+        id: 'sellerName',
+        name: 'settings[sellerName]',
+        value: settings.sellerName,
+    }) }}
+
+    {{ forms.textareaField({
+        label: 'Address'|t('digits'),
+        id: 'sellerAddress',
+        name: 'settings[sellerAddress]',
+        value: settings.sellerAddress,
+        rows: 4,
+    }) }}
+
+    {{ forms.selectField({
+        label: 'Country'|t('digits'),
+        instructions: 'The country the place-of-supply rules turn on. Everything else follows from this and the buyer’s.'|t('digits'),
+        id: 'sellerCountry',
+        name: 'settings[sellerCountry]',
+        value: settings.sellerCountry,
+        options: countries,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Your VAT number'|t('digits'),
+        id: 'sellerVatId',
+        name: 'settings[sellerVatId]',
+        value: settings.sellerVatId,
+        class: 'code',
+    }) }}
+
+    {{ forms.textField({
+        label: 'Company registration'|t('digits'),
+        instructions: 'Optional. Printed under your address.'|t('digits'),
+        id: 'sellerRegistration',
+        name: 'settings[sellerRegistration]',
+        value: settings.sellerRegistration,
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'Numbering'|t('digits') }}</h2>
+
+    <p class="light">
+        {{ 'An invoice number has to be sequential and gapless within its series, which is a stronger promise than unique. Digits allocates from a counter under a lock, so two simultaneous checkouts cannot share or skip one. The next number would be {next}.'|t('digits', { next: nextNumber }) }}
+    </p>
+
+    {{ forms.textField({
+        label: 'Series'|t('digits'),
+        id: 'invoiceSeries',
+        name: 'settings[invoiceSeries]',
+        value: settings.invoiceSeries,
+        class: 'code',
+        size: 16,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Format'|t('digits'),
+        instructions: 'Tokens: {series}, {year}, {month}, {number}.'|t('digits'),
+        id: 'invoiceNumberFormat',
+        name: 'settings[invoiceNumberFormat]',
+        value: settings.invoiceNumberFormat,
+        class: 'code',
+        errors: settings.getErrors('invoiceNumberFormat'),
+    }) }}
+
+    {{ forms.selectField({
+        label: 'Restart the counter'|t('digits'),
+        id: 'invoiceNumberReset',
+        name: 'settings[invoiceNumberReset]',
+        value: settings.invoiceNumberReset,
+        options: [
+            { label: 'Never'|t('digits'), value: 'never' },
+            { label: 'Every year'|t('digits'), value: 'yearly' },
+            { label: 'Every month'|t('digits'), value: 'monthly' },
+        ],
+    }) }}
+
+    {{ forms.textField({
+        label: 'Padding'|t('digits'),
+        id: 'invoiceNumberPadding',
+        name: 'settings[invoiceNumberPadding]',
+        value: settings.invoiceNumberPadding,
+        size: 4,
+        type: 'number',
+    }) }}
+
+    {{ forms.textField({
+        label: 'Start at'|t('digits'),
+        instructions: 'Set this to carry on from the numbers you were already using.'|t('digits'),
+        id: 'invoiceStartNumber',
+        name: 'settings[invoiceStartNumber]',
+        value: settings.invoiceStartNumber,
+        size: 8,
+        type: 'number',
+    }) }}
+
+    {{ forms.textareaField({
+        label: 'Footer'|t('digits'),
+        instructions: 'Printed at the foot of every invoice, under the VAT wording.'|t('digits'),
+        id: 'invoiceFooter',
+        name: 'settings[invoiceFooter]',
+        value: settings.invoiceFooter,
+        rows: 3,
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'VAT numbers and evidence'|t('digits') }}</h2>
+
+    {{ forms.lightswitchField({
+        label: 'Check VAT numbers against VIES'|t('digits'),
+        instructions: 'An outbound request to the Commission’s service, which is famously down. With it off Digits still checks the country prefix, the length and the shape — which catches typos, and is not the same evidence. Only a VIES confirmation earns the reverse charge; the invoice records which of the two it had.'|t('digits'),
+        id: 'validateVatIds',
+        name: 'settings[validateVatIds]',
+        on: settings.validateVatIds,
+    }) }}
+
+    {{ forms.textField({
+        label: 'VIES timeout (seconds)'|t('digits'),
+        id: 'viesTimeout',
+        name: 'settings[viesTimeout]',
+        value: settings.viesTimeout,
+        size: 4,
+        type: 'number',
+    }) }}
+
+    {{ forms.textField({
+        label: 'Trust an answer for (days)'|t('digits'),
+        id: 'vatIdCacheDays',
+        name: 'settings[vatIdCacheDays]',
+        value: settings.vatIdCacheDays,
+        size: 6,
+        type: 'number',
+    }) }}
+
+    {{ forms.textField({
+        label: 'Country header'|t('digits'),
+        instructions: 'The header your CDN sets with the visitor’s country — the second piece of evidence the place-of-supply rules ask for. Digits will not do a geo-IP lookup of its own; without this it records that it had one piece and says so on the invoice.'|t('digits'),
+        id: 'countryHeader',
+        name: 'settings[countryHeader]',
+        value: settings.countryHeader,
+        class: 'code',
+        size: 24,
+    }) }}
+{% endblock %}

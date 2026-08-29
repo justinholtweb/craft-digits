@@ -1,0 +1,11 @@
+{% extends '_layouts/elementindex' %}
+
+{% set title = 'Licences'|t('digits') %}
+{% set elementType = 'justinholtweb\\digits\\elements\\License' %}
+{% set selectedSubnavItem = 'licenses' %}
+
+{% block actionButton %}
+    {% if canCreate %}
+        <a href="{{ url('digits/licenses/new') }}" class="btn submit add icon">{{ 'New licence'|t('digits') }}</a>
+    {% endif %}
+{% endblock %}

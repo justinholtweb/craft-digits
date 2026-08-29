@@ -1,0 +1,26 @@
+{% extends '_layouts/cp' %}
+
+{% set title = 'Fields'|t('digits') %}
+{% set selectedSubnavItem = 'settings' %}
+{% set fullPageForm = true %}
+{% set sidebar = include('digits/settings/_nav', { selectedItem: selectedItem }) %}
+
+{% block content %}
+    <input type="hidden" name="action" value="digits/settings/save-field-layout">
+    <input type="hidden" name="which" value="{{ which ?? 'download' }}">
+    {{ redirectInput('digits/settings/fields') }}
+
+    <div class="readable">
+        <p>
+            {{ 'What a download is *about* — its description, its artwork, its system requirements — belongs here. What Digits has to reason about — who may have it, how many times, for how long — is on the download itself and cannot be removed.'|t('digits') }}
+        </p>
+    </div>
+
+    {% if (which ?? 'download') == 'license' %}
+        <p><a href="{{ url('digits/settings/fields') }}">{{ '← Download fields'|t('digits') }}</a></p>
+        {{ licenseLayout.createForm().render() | raw }}
+    {% else %}
+        <p><a href="{{ url('digits/settings/fields', { which: 'license' }) }}">{{ 'Licence fields →'|t('digits') }}</a></p>
+        {{ downloadLayout.createForm().render() | raw }}
+    {% endif %}
+{% endblock %}

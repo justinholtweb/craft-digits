@@ -1,0 +1,58 @@
+{
+    "name": "justinholtweb/craft-digits",
+    "description": "Gated digital downloads and software licensing for Craft CMS — expiring links, download limits, versioned files, license keys with activation limits, a customer portal, refund revocation and EU VAT invoicing.",
+    "version": "5.0.0",
+    "type": "craft-plugin",
+    "keywords": [
+        "craftcms",
+        "craft-plugin",
+        "craft-commerce",
+        "commerce",
+        "digital-downloads",
+        "downloads",
+        "licensing",
+        "license-keys",
+        "eu-vat",
+        "invoicing"
+    ],
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Justin Holt",
+            "homepage": "https://justinholt.com"
+        }
+    ],
+    "support": {
+        "email": "justin@justinholt.com"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.2",
+        "ext-json": "*",
+        "craftcms/cms": "^5.3.0"
+    },
+    "suggest": {
+        "craftcms/commerce": "Sell downloads and licences through Craft Commerce (^5.0.0), and issue VAT invoices from completed orders."
+    },
+    "autoload": {
+        "psr-4": {
+            "justinholtweb\\digits\\": "src/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "craftcms/plugin-installer": true,
+            "yiisoft/yii2-composer": true
+        }
+    },
+    "extra": {
+        "name": "Digits",
+        "handle": "digits",
+        "developer": "Justin Holt",
+        "developerUrl": "https://justinholt.com",
+        "documentationUrl": "https://github.com/justinholtweb/craft-digits/blob/main/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/justinholtweb/craft-digits/main/CHANGELOG.md",
+        "class": "justinholtweb\\digits\\Plugin"
+    }
+}

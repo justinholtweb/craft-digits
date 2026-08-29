@@ -1,0 +1,74 @@
+{% extends 'digits/_portal/_layout' %}
+
+{% block title %}{{ 'Your files'|t('digits') }}{% endblock %}
+
+{% block body %}
+    <p><a href="{{ craft.digits.portalUrl() }}">{{ '← Everything you have bought'|t('digits') }}</a></p>
+
+    <h1>{{ license.downloads|map(d => d.title)|join(', ') }}</h1>
+
+    {% if license.licenseKey %}
+        <p class="key">{{ license.licenseKey }}</p>
+    {% endif %}
+
+    {% for group in groups %}
+        <h2>{{ group.download.title }}</h2>
+
+        {% if not group.verdict.allowed %}
+            {# Shown rather than hidden: a customer whose access lapsed has to be told, not shown an
+               empty space where a button used to be. #}
+            <div class="card"><p>{{ group.verdict.message }}</p></div>
+        {% elseif group.versions is empty %}
+            <div class="card"><p class="muted">{{ 'No files have been released yet.'|t('digits') }}</p></div>
+        {% else %}
+            {% for entry in group.versions %}
+                <div class="card">
+                    <div class="row">
+                        <h3 class="key">{{ entry.version.version }}</h3>
+                        <span class="muted">
+                            {{ entry.version.dateReleased ? entry.version.dateReleased|date('medium') }}
+                            {% if entry.version.sizeLabel %} · {{ entry.version.sizeLabel }}{% endif %}
+                        </span>
+                    </div>
+
+                    {% if entry.version.releaseNotes %}
+                        <p class="muted">{{ entry.version.releaseNotes|nl2br }}</p>
+                    {% endif %}
+
+                    <ul class="files">
+                        {% for row in entry.files %}
+                            <li class="row">
+                                <span>{{ row.file.name }} <span class="muted">{{ row.file.sizeLabel }}</span></span>
+                                {% if row.url %}
+                                    <a class="btn" href="{{ row.url }}">{{ 'Download'|t('digits') }}</a>
+                                {% else %}
+                                    <span class="muted">{{ row.verdict.message }}</span>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+
+    {% if activations is not empty %}
+        <h2>{{ 'Where this licence is in use'|t('digits') }}</h2>
+
+        {% for activation in activations %}
+            {% if activation.isActive %}
+                <div class="card row">
+                    <span class="key">{{ activation.labelOrInstance }}</span>
+                    <form method="post" accept-charset="UTF-8">
+                        {{ csrfInput() }}
+                        <input type="hidden" name="action" value="digits/portal/deactivate">
+                        <input type="hidden" name="licenseId" value="{{ license.id }}">
+                        <input type="hidden" name="activationId" value="{{ activation.id }}">
+                        {{ redirectInput(craft.app.request.pathInfo) }}
+                        <button type="submit" class="btn">{{ 'Deactivate'|t('digits') }}</button>
+                    </form>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+{% endblock %}

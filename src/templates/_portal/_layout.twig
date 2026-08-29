@@ -1,0 +1,51 @@
+{#
+  The fallback shell for the account page.
+
+  Deliberately plain and self-contained: it is a working page a shop can hand a customer on day one,
+  and it is meant to be replaced. Copy any of `digits/_portal/*.twig` into your own
+  `templates/digits/portal/` and Digits will use yours instead — the controller looks there first.
+#}
+<!DOCTYPE html>
+<html lang="{{ craft.app.language }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{{ block('title') ?? 'Your downloads'|t('digits') }}</title>
+    <style>
+        :root {
+            --bg: #ffffff; --fg: #14161a; --muted: #5b6270;
+            --line: #e3e6eb; --card: #f7f8fa; --accent: #1f6feb;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root { --bg: #14161a; --fg: #eceef2; --muted: #9aa3b2; --line: #2a2f38; --card: #1b1e24; --accent: #6ea8ff; }
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+        .wrap { max-width: 46rem; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+        h1 { font-size: 1.6rem; margin: 0 0 .35rem; }
+        h2 { font-size: 1.15rem; margin: 2rem 0 .5rem; }
+        h3 { font-size: 1rem; margin: 0 0 .25rem; }
+        a { color: var(--accent); }
+        .muted { color: var(--muted); }
+        .card { border: 1px solid var(--line); border-radius: 10px; padding: 1.1rem 1.25rem; margin-bottom: 1rem; background: var(--card); }
+        .row { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; flex-wrap: wrap; }
+        .key { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .95rem; }
+        .pill { display: inline-block; font-size: .75rem; padding: .1rem .5rem; border-radius: 999px; border: 1px solid var(--line); }
+        .pill.ok { border-color: #2f8f4e; color: #2f8f4e; }
+        .pill.warn { border-color: #b26a00; color: #b26a00; }
+        .pill.bad { border-color: #b3261e; color: #b3261e; }
+        ul.files { list-style: none; padding: 0; margin: .5rem 0 0; }
+        ul.files li { padding: .35rem 0; border-top: 1px solid var(--line); }
+        .btn { display: inline-block; padding: .4rem .8rem; border-radius: 7px; background: var(--accent); color: #fff; text-decoration: none; font-size: .9rem; border: 0; cursor: pointer; }
+        input[type=email] { padding: .5rem .6rem; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); color: var(--fg); min-width: 16rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: .4rem 0; border-bottom: 1px solid var(--line); }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        {% block body %}{% endblock %}
+    </div>
+</body>
+</html>

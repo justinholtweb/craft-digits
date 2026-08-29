@@ -1,0 +1,138 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set title = 'Licences'|t('digits') %}
+{% set selectedSubnavItem = 'settings' %}
+{% set fullPageForm = true %}
+{% set sidebar = include('digits/settings/_nav', { selectedItem: selectedItem }) %}
+
+{% block content %}
+    <input type="hidden" name="action" value="digits/settings/save">
+    {{ redirectInput('digits/settings/licenses') }}
+    <input type="hidden" name="booleans[]" value="licensePerQuantity">
+    <input type="hidden" name="booleans[]" value="notifyOnIssue">
+    <input type="hidden" name="booleans[]" value="notifyOnRelease">
+    <input type="hidden" name="booleans[]" value="enableActivationApi">
+
+    {% if not allowsKeys %}
+        <div class="readable">
+            <blockquote class="note">
+                <p>{{ 'Licence keys, activation seats and the activation API are Digits Pro. Lite still issues a licence for every purchase — that licence is what makes a download link work — it just has no key for software to check.'|t('digits') }}</p>
+            </blockquote>
+        </div>
+    {% endif %}
+
+    <h2>{{ 'Keys'|t('digits') }}</h2>
+
+    {{ forms.textField({
+        label: 'Key format'|t('digits'),
+        instructions: 'Every X becomes a random character. Everything else is literal. Example: {sample}'|t('digits', { sample: sampleKey }),
+        id: 'keyFormat',
+        name: 'settings[keyFormat]',
+        value: settings.keyFormat,
+        class: 'code',
+        errors: settings.getErrors('keyFormat'),
+    }) }}
+
+    {{ forms.textField({
+        label: 'Alphabet'|t('digits'),
+        instructions: 'The default leaves out I, O, 0 and 1 — a licence key is a thing people read aloud down a telephone.'|t('digits'),
+        id: 'keyAlphabet',
+        name: 'settings[keyAlphabet]',
+        value: settings.keyAlphabet,
+        class: 'code',
+    }) }}
+
+    {{ forms.textField({
+        label: 'Prefix'|t('digits'),
+        id: 'keyPrefix',
+        name: 'settings[keyPrefix]',
+        value: settings.keyPrefix,
+        class: 'code',
+        size: 12,
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'Issuing'|t('digits') }}</h2>
+
+    {{ forms.selectField({
+        label: 'Issue a licence'|t('digits'),
+        instructions: 'Waiting for payment still creates the licence at completion — as pending, so the customer can see it and it refuses to download until the money lands. An empty account page is what makes people email support.'|t('digits'),
+        id: 'issueOn',
+        name: 'settings[issueOn]',
+        value: settings.issueOn,
+        options: [
+            { label: 'When the order completes'|t('digits'), value: 'complete' },
+            { label: 'When the order is paid'|t('digits'), value: 'paid' },
+        ],
+    }) }}
+
+    {{ forms.textField({
+        label: 'Activations per licence'|t('digits'),
+        instructions: 'Machines or sites a key may run on at once. Zero is unlimited.'|t('digits'),
+        id: 'activationLimit',
+        name: 'settings[activationLimit]',
+        value: settings.activationLimit,
+        size: 8,
+        type: 'number',
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Buying three gives three keys'|t('digits'),
+        instructions: 'Off, buying three of a one-machine licence gives one key good for three machines — which is what “three of these” from one company usually means. On, it gives three separate keys.'|t('digits'),
+        id: 'licensePerQuantity',
+        name: 'settings[licensePerQuantity]',
+        on: settings.licensePerQuantity,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Email the customer when their downloads are ready'|t('digits'),
+        id: 'notifyOnIssue',
+        name: 'settings[notifyOnIssue]',
+        on: settings.notifyOnIssue,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Email licence holders about new versions'|t('digits'),
+        id: 'notifyOnRelease',
+        name: 'settings[notifyOnRelease]',
+        on: settings.notifyOnRelease,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Serve the activation API'|t('digits'),
+        instructions: 'The endpoints a customer’s software calls to activate, deactivate, check and look for updates.'|t('digits'),
+        id: 'enableActivationApi',
+        name: 'settings[enableActivationApi]',
+        on: settings.enableActivationApi,
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'Refunds'|t('digits') }}</h2>
+
+    {{ forms.selectField({
+        label: 'When money goes back'|t('digits'),
+        instructions: 'Revoking also deletes the links the customer already holds — that is why a download link is a row in the database and not a signed URL. Commerce’s refund transactions are not line-scoped, so a partial refund can only be all-or-nothing here; Digits will not guess which product it was for.'|t('digits'),
+        id: 'revokeOnRefund',
+        name: 'settings[revokeOnRefund]',
+        value: settings.revokeOnRefund,
+        options: [
+            { label: 'Revoke when refunded in full'|t('digits'), value: 'full' },
+            { label: 'Revoke on any refund'|t('digits'), value: 'any' },
+            { label: 'Never revoke'|t('digits'), value: 'never' },
+        ],
+    }) }}
+
+    {% if orderStatuses is not empty %}
+        {{ forms.checkboxSelectField({
+            label: 'Statuses that revoke'|t('digits'),
+            instructions: 'Applying one of these to an order withdraws everything it granted.'|t('digits'),
+            id: 'revokeOnStatuses',
+            name: 'settings[revokeOnStatuses]',
+            values: settings.revokeOnStatuses,
+            options: orderStatuses,
+        }) }}
+    {% endif %}
+{% endblock %}

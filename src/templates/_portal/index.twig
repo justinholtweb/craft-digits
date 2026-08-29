@@ -1,0 +1,65 @@
+{% extends 'digits/_portal/_layout' %}
+
+{% block title %}{{ 'Your downloads'|t('digits') }}{% endblock %}
+
+{% block body %}
+    <h1>{{ 'Your downloads'|t('digits') }}</h1>
+    <p class="muted">{{ email }}</p>
+
+    {% if licenses is empty %}
+        <p>{{ 'There is nothing here yet.'|t('digits') }}</p>
+    {% else %}
+        {% for license in licenses %}
+            {% set status = license.status %}
+            <div class="card">
+                <div class="row">
+                    <h3>{{ license.downloads|map(d => d.title)|join(', ') }}</h3>
+                    <span class="pill {{ status == 'active' ? 'ok' : (status == 'expired' ? 'warn' : 'bad') }}">
+                        {{ status == 'active' ? 'Active'|t('digits') : (status == 'expired' ? 'Expired'|t('digits') : status|title) }}
+                    </span>
+                </div>
+
+                {% if license.licenseKey %}
+                    <p class="key">{{ license.licenseKey }}</p>
+                {% endif %}
+
+                <p class="muted">
+                    {% if license.expiryDate %}
+                        {{ status == 'expired'
+                            ? 'Ended {date}'|t('digits', { date: license.expiryDate|date('medium') })
+                            : 'Runs until {date}'|t('digits', { date: license.expiryDate|date('medium') }) }}
+                    {% else %}
+                        {{ 'No expiry'|t('digits') }}
+                    {% endif %}
+                    {% if license.downloadsRemaining is not null %}
+                        · {{ '{count} downloads left'|t('digits', { count: license.downloadsRemaining }) }}
+                    {% endif %}
+                </p>
+
+                <p><a class="btn" href="{{ url(craft.digits.portalUrl() ~ '/license/' ~ license.id) }}">{{ 'Files and versions'|t('digits') }}</a></p>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if invoices is not empty %}
+        <h2>{{ 'Invoices'|t('digits') }}</h2>
+        <table>
+            <tbody>
+                {% for invoice in invoices %}
+                    <tr>
+                        <td class="key">{{ invoice.number }}</td>
+                        <td class="muted">{{ invoice.dateIssued|date('medium') }}</td>
+                        <td>{{ invoice.grossAmount|number_format(2) }} {{ invoice.currency }}</td>
+                        <td><a href="{{ craft.digits.portalUrl() }}/invoice/{{ invoice.id }}">{{ 'View'|t('digits') }}</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if user is null %}
+        <p class="muted" style="margin-top:2rem;">
+            <a href="{{ actionUrl('digits/portal/sign-out') }}">{{ 'Forget me on this device'|t('digits') }}</a>
+        </p>
+    {% endif %}
+{% endblock %}

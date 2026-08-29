@@ -1,0 +1,226 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set selectedSubnavItem = 'downloads' %}
+{% set fullPageForm = canManage %}
+{% set crumbs = [
+    { label: 'Digits'|t('digits'), url: url('digits/downloads') },
+    { label: 'Downloads'|t('digits'), url: url('digits/downloads') },
+] %}
+
+{% block actionButton %}
+    {% if canManage %}
+        <div class="btngroup">
+            <button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <input type="hidden" name="action" value="digits/downloads/save">
+    {% if not isNew %}<input type="hidden" name="downloadId" value="{{ download.id }}">{% endif %}
+    {{ redirectInput('digits/downloads/{id}') }}
+
+    {{ forms.textField({
+        label: 'Title'|t('app'),
+        id: 'title',
+        name: 'title',
+        value: download.title,
+        errors: download.getErrors('title'),
+        autofocus: true,
+        required: true,
+    }) }}
+
+    {{ forms.textField({
+        label: 'SKU'|t('digits'),
+        instructions: 'Matched against a Commerce line item’s SKU when nothing relates this download through a Downloads field. Leave it empty if you use the field, which is the better way.'|t('digits'),
+        id: 'sku',
+        name: 'sku',
+        value: download.sku,
+        errors: download.getErrors('sku'),
+        class: 'code',
+    }) }}
+
+    {% if download.fieldLayout %}
+        <hr>
+        {{ download.getFieldLayout().createForm(download).render() | raw }}
+    {% endif %}
+
+    <hr>
+
+    <h2>{{ 'Who may have it'|t('digits') }}</h2>
+
+    {{ forms.selectField({
+        label: 'Access'|t('digits'),
+        id: 'accessType',
+        name: 'accessType',
+        value: download.accessType,
+        toggle: true,
+        targetPrefix: 'access-',
+        options: [
+            { label: 'Licence holders'|t('digits'), value: 'licensed' },
+            { label: 'Signed-in users'|t('digits'), value: 'login' },
+            { label: 'Chosen user groups'|t('digits'), value: 'groups' },
+            { label: 'Anyone'|t('digits'), value: 'public' },
+        ],
+    }) }}
+
+    <div id="access-groups" class="{{ download.accessType != 'groups' ? 'hidden' }}">
+        {{ forms.checkboxSelectField({
+            label: 'User groups'|t('digits'),
+            id: 'groupIds',
+            name: 'groupIds',
+            values: download.groupIds,
+            errors: download.getErrors('groupIds'),
+            options: userGroups|map(g => { label: g.name, value: g.id }),
+        }) }}
+    </div>
+
+    <div id="access-licensed" class="{{ download.accessType != 'licensed' ? 'hidden' }}">
+        {{ forms.lightswitchField({
+            label: 'Buying this issues a licence'|t('digits'),
+            instructions: 'Off for a file that comes free with something else — it is still delivered through Digits, and still counted, but a purchase of it does not create a licence of its own.'|t('digits'),
+            id: 'issuesLicense',
+            name: 'issuesLicense',
+            on: download.issuesLicense,
+        }) }}
+    </div>
+
+    <hr>
+
+    <h2>{{ 'Limits'|t('digits') }}</h2>
+
+    <p class="light">{{ 'Leave a box empty to follow the site default. Zero means no limit.'|t('digits') }}</p>
+
+    {{ forms.textField({
+        label: 'Downloads per licence'|t('digits'),
+        instructions: 'Counted per completed delivery, not per click — a resumed download does not spend a second one.'|t('digits'),
+        id: 'downloadLimit',
+        name: 'downloadLimit',
+        value: download.downloadLimit,
+        size: 6,
+        placeholder: settings.downloadLimit ?: 0,
+        type: 'number',
+    }) }}
+
+    {{ forms.textField({
+        label: 'Access lasts (days)'|t('digits'),
+        instructions: 'How long a licence issued for this download stays live. Zero is forever.'|t('digits'),
+        id: 'accessDays',
+        name: 'accessDays',
+        value: download.accessDays,
+        size: 6,
+        placeholder: settings.accessDays,
+        type: 'number',
+    }) }}
+
+    {{ forms.textField({
+        label: 'Links last (minutes)'|t('digits'),
+        id: 'linkTtl',
+        name: 'linkTtl',
+        value: download.linkTtl,
+        size: 6,
+        placeholder: settings.linkTtl,
+        type: 'number',
+    }) }}
+
+    {{ forms.textField({
+        label: 'Activations per licence'|t('digits'),
+        instructions: 'Machines or sites a licence key may run on at once. Zero is unlimited.'|t('digits'),
+        id: 'activationLimit',
+        name: 'activationLimit',
+        value: download.activationLimit,
+        size: 6,
+        placeholder: settings.activationLimit,
+        type: 'number',
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Expired licences keep the versions they paid for'|t('digits'),
+        instructions: 'The “one year of updates” model: everything released while the licence was live stays downloadable forever, and only the builds that came out afterwards need a renewal. Off, an expired licence downloads nothing.'|t('digits'),
+        id: 'gateUpdatesOnExpiry',
+        name: 'gateUpdatesOnExpiry',
+        on: download.gateUpdatesOnExpiry,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Email licence holders about new versions'|t('digits'),
+        id: 'notifyOnRelease',
+        name: 'notifyOnRelease',
+        on: download.notifyOnRelease,
+    }) }}
+{% endblock %}
+
+{% block details %}
+    {% if not isNew %}
+        <div class="meta">
+            <div class="data">
+                <h5 class="heading">{{ 'Status'|t('app') }}</h5>
+                <div class="value">
+                    {{ forms.lightswitch({ name: 'enabled', on: download.enabled }) }}
+                </div>
+            </div>
+            <div class="data">
+                <h5 class="heading">{{ 'Licences'|t('digits') }}</h5>
+                <div class="value">
+                    <a href="{{ url('digits/licenses', { downloadId: download.id }) }}">{{ download.licenseCount }}</a>
+                </div>
+            </div>
+            <div class="data">
+                <h5 class="heading">{{ 'Downloads (30 days)'|t('digits') }}</h5>
+                <div class="value">{{ downloadTotal }}</div>
+            </div>
+        </div>
+
+        <div class="meta read-only">
+            <div class="data">
+                <h5 class="heading">{{ 'Created'|t('app') }}</h5>
+                <div class="value">{{ download.dateCreated|datetime('short') }}</div>
+            </div>
+        </div>
+    {% else %}
+        <div class="meta">
+            <div class="data">
+                <h5 class="heading">{{ 'Status'|t('app') }}</h5>
+                <div class="value">{{ forms.lightswitch({ name: 'enabled', on: true }) }}</div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block sidebar %}
+    {% if not isNew %}
+        <h2>{{ 'Versions'|t('digits') }}</h2>
+
+        {% if versions is empty %}
+            <p class="light">{{ 'No versions yet. A download with no released version cannot be delivered.'|t('digits') }}</p>
+        {% else %}
+            <ul>
+                {% for version in versions %}
+                    <li style="margin-bottom: 8px;">
+                        {% if version.isCurrent %}<span class="status green"></span>{% elseif not version.isLive %}<span class="status gray"></span>{% endif %}
+                        <a href="{{ url('digits/downloads/' ~ download.id ~ '/versions/' ~ version.id) }}">
+                            <code>{{ version.version }}</code>
+                        </a>
+                        <span class="light">
+                            {% if not version.isLive %}
+                                {{ 'draft'|t('digits') }}
+                            {% elseif version.dateReleased %}
+                                {{ version.dateReleased|date('short') }}
+                            {% endif %}
+                            {% if version.sizeLabel %} · {{ version.sizeLabel }}{% endif %}
+                        </span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if canManage %}
+            {% if canAddVersion %}
+                <p><a class="btn add icon" href="{{ url('digits/downloads/' ~ download.id ~ '/versions/new') }}">{{ 'New version'|t('digits') }}</a></p>
+            {% else %}
+                <p class="light">{{ 'Digits Lite holds two versions per download. Upgrade to Pro for a full release history.'|t('digits') }}</p>
+            {% endif %}
+        {% endif %}
+    {% endif %}
+{% endblock %}

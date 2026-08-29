@@ -1,0 +1,110 @@
+{#
+  The invoice itself.
+
+  One template, printed from the control panel and from the customer's own account page, so the two
+  can never say different things about the same document. Every figure on it comes from the
+  snapshot taken when it was issued — nothing here reads the order, because the order has gone on
+  changing since.
+#}
+<div class="digits-invoice">
+    <header class="digits-invoice-head">
+        <div>
+            <h1>{{ invoice.isCreditNote ? 'Credit note'|t('digits') : 'Invoice'|t('digits') }}</h1>
+            <p class="digits-number">{{ invoice.number }}</p>
+            <p class="digits-muted">{{ invoice.dateIssued|date('long') }}</p>
+            {% if invoice.orderReference %}
+                <p class="digits-muted">{{ 'Order {reference}'|t('digits', { reference: invoice.orderReference }) }}</p>
+            {% endif %}
+        </div>
+
+        <div class="digits-seller">
+            {% set seller = invoice.seller %}
+            <strong>{{ seller.name ?? '' }}</strong>
+            {% if seller.address ?? false %}<div class="digits-muted">{{ seller.address|nl2br }}</div>{% endif %}
+            {% if seller.vatId ?? false %}<div class="digits-muted">{{ 'VAT {id}'|t('digits', { id: seller.vatId }) }}</div>{% endif %}
+            {% if seller.registration ?? false %}<div class="digits-muted">{{ seller.registration }}</div>{% endif %}
+        </div>
+    </header>
+
+    <section class="digits-parties">
+        <div>
+            <h2>{{ 'Billed to'|t('digits') }}</h2>
+            {% set billing = invoice.billingAddress %}
+            <p>
+                {{ invoice.customerName ?: invoice.customerEmail }}<br>
+                {% if billing.organization ?? false %}{{ billing.organization }}<br>{% endif %}
+                {% if billing.formatted ?? false %}{{ billing.formatted }}<br>{% endif %}
+                {% if invoice.buyerVatId %}{{ 'VAT {id}'|t('digits', { id: invoice.buyerVatId }) }}{% endif %}
+            </p>
+        </div>
+    </section>
+
+    <table class="digits-lines">
+        <thead>
+            <tr>
+                <th>{{ 'Description'|t('digits') }}</th>
+                <th class="digits-right">{{ 'Qty'|t('digits') }}</th>
+                <th class="digits-right">{{ 'Net'|t('digits') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in invoice.lines %}
+                <tr>
+                    <td>
+                        {{ line.description }}
+                        {% if line.sku %}<span class="digits-muted"> · {{ line.sku }}</span>{% endif %}
+                    </td>
+                    <td class="digits-right">{{ line.qty }}</td>
+                    <td class="digits-right">{{ line.net|number_format(2) }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="2" class="digits-right">{{ 'Net'|t('digits') }}</th>
+                <td class="digits-right">{{ invoice.netAmount|number_format(2) }} {{ invoice.currency }}</td>
+            </tr>
+            <tr>
+                <th colspan="2" class="digits-right">
+                    {{ 'VAT'|t('digits') }}
+                    {% if invoice.vatRate > 0 %}({{ invoice.vatRate }}%){% endif %}
+                </th>
+                <td class="digits-right">{{ invoice.vatAmount|number_format(2) }} {{ invoice.currency }}</td>
+            </tr>
+            <tr class="digits-total">
+                <th colspan="2" class="digits-right">{{ 'Total'|t('digits') }}</th>
+                <td class="digits-right">{{ invoice.grossAmount|number_format(2) }} {{ invoice.currency }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    {% if invoice.vatNote %}
+        {# Required wording, not a courtesy: a reverse-charged invoice is only valid if it says so. #}
+        <p class="digits-note">{{ invoice.vatNote }}</p>
+    {% endif %}
+
+    {% if invoice.isCreditNote and invoice.creditedInvoice %}
+        <p class="digits-note">{{ 'Credit against invoice {number}.'|t('digits', { number: invoice.creditedInvoice.number }) }}</p>
+    {% endif %}
+
+    {% if settings.invoiceFooter %}
+        <footer class="digits-muted">{{ settings.invoiceFooter|nl2br }}</footer>
+    {% endif %}
+</div>
+
+<style>
+    .digits-invoice { max-width: 46rem; font-size: 14px; line-height: 1.5; }
+    .digits-invoice-head { display: flex; justify-content: space-between; gap: 2rem; margin-bottom: 2rem; }
+    .digits-invoice h1 { font-size: 1.5rem; margin: 0 0 .25rem; }
+    .digits-number { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; }
+    .digits-muted { opacity: .7; margin: 0; }
+    .digits-seller { text-align: right; }
+    .digits-parties { margin-bottom: 2rem; }
+    .digits-parties h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; opacity: .6; margin: 0 0 .35rem; }
+    .digits-lines { width: 100%; border-collapse: collapse; }
+    .digits-lines th, .digits-lines td { padding: .5rem 0; border-bottom: 1px solid rgba(128,128,128,.25); text-align: left; }
+    .digits-right { text-align: right; }
+    .digits-total th, .digits-total td { font-weight: 700; border-bottom: none; }
+    .digits-note { margin-top: 1.5rem; padding: .75rem 1rem; border-left: 3px solid rgba(128,128,128,.4); }
+    @media print { .digits-invoice { max-width: none; } }
+</style>

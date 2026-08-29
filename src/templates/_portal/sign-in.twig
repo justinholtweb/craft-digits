@@ -1,0 +1,28 @@
+{% extends 'digits/_portal/_layout' %}
+
+{% block title %}{{ 'Your downloads'|t('digits') }}{% endblock %}
+
+{% block body %}
+    <h1>{{ 'Your downloads'|t('digits') }}</h1>
+    <p class="muted">{{ 'Sign in, or ask us to email you a link to everything you have bought.'|t('digits') }}</p>
+
+    {% if canRequestLink %}
+        <div class="card">
+            <form method="post" accept-charset="UTF-8">
+                {{ csrfInput() }}
+                <input type="hidden" name="action" value="digits/portal/request-link">
+                {{ redirectInput(craft.app.request.pathInfo) }}
+
+                <label for="email">{{ 'The address you ordered with'|t('digits') }}</label><br>
+                <p>
+                    <input type="email" id="email" name="email" required autocomplete="email">
+                    <button type="submit" class="btn">{{ 'Email me a link'|t('digits') }}</button>
+                </p>
+            </form>
+        </div>
+    {% endif %}
+
+    {% if craft.app.session.hasFlash('notice') %}
+        <p>{{ craft.app.session.getFlash('notice') }}</p>
+    {% endif %}
+{% endblock %}

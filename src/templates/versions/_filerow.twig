@@ -1,0 +1,45 @@
+{#
+  One file in a release.
+
+  Rendered once per existing file and once more as a blank row, which is the whole "add a file"
+  affordance — an editable table would be tidier and cannot hold an asset picker.
+#}
+{% import '_includes/forms.twig' as forms %}
+
+<div class="digits-file field" style="border: 1px solid var(--hairline-color); border-radius: 5px; padding: 12px; margin-bottom: 12px;">
+    {% if file and file.id %}
+        <input type="hidden" name="files[{{ i }}][id]" value="{{ file.id }}">
+    {% endif %}
+
+    {{ forms.textField({
+        label: 'Name'|t('digits'),
+        instructions: 'What the customer sees — “macOS (Apple silicon)”, “Print-ready PDF”.'|t('digits'),
+        name: 'files[' ~ i ~ '][name]',
+        value: file.name ?? '',
+    }) }}
+
+    {{ forms.elementSelectField({
+        label: 'File'|t('digits'),
+        name: 'files[' ~ i ~ '][assetId]',
+        elementType: 'craft\\elements\\Asset',
+        elements: file and file.asset ? [file.asset] : [],
+        limit: 1,
+        selectionLabel: 'Choose a file'|t('digits'),
+    }) }}
+
+    {{ forms.textField({
+        label: 'or a URL'|t('digits'),
+        name: 'files[' ~ i ~ '][url]',
+        value: file.url ?? '',
+        placeholder: 'https://…',
+        class: 'code',
+    }) }}
+
+    {{ forms.textField({
+        label: 'Delivered filename'|t('digits'),
+        instructions: 'Optional. What the customer’s browser calls it when it lands.'|t('digits'),
+        name: 'files[' ~ i ~ '][filename]',
+        value: file.filename ?? '',
+        class: 'code',
+    }) }}
+</div>

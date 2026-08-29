@@ -1,0 +1,52 @@
+{#
+  What Digits produced for this order, on the order's own screen.
+
+  Where support actually looks when a customer says a download stopped working — so it shows the
+  state of every licence and how much of the allowance is gone, not just that a licence exists.
+#}
+<div class="meta">
+    {% if licenses is not empty %}
+        <div class="data">
+            <h5 class="heading">{{ 'Digits licences'|t('digits') }}</h5>
+            <div class="value">
+                <ul>
+                    {% for license in licenses %}
+                        {% set status = license.status %}
+                        <li style="margin-bottom: 6px;">
+                            <span class="status {{ status == 'active' ? 'green' : (status == 'revoked' ? 'red' : (status == 'expired' ? 'orange' : 'gray')) }}"></span>
+                            <a href="{{ url('digits/licenses/' ~ license.id) }}">
+                                {{ license.licenseKey ?? 'Licence ' ~ license.id }}
+                            </a>
+                            <span class="light">
+                                — {{ license.downloads|map(d => d.title)|join(', ') }}
+                            </span>
+                            {% if license.effectiveDownloadLimit > 0 %}
+                                <span class="light">({{ license.downloadCount }}/{{ license.effectiveDownloadLimit }})</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if invoices is not empty %}
+        <div class="data">
+            <h5 class="heading">{{ 'VAT invoices'|t('digits') }}</h5>
+            <div class="value">
+                <ul>
+                    {% for invoice in invoices %}
+                        <li>
+                            <a href="{{ url('digits/invoices/' ~ invoice.id) }}">{{ invoice.number }}</a>
+                            <span class="light">— {{ invoice.treatmentLabel }}</span>
+                            {% if invoice.hasDiscrepancy %}
+                                <span class="status orange"></span>
+                                <span class="light">{{ 'tax mismatch'|t('digits') }}</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+</div>

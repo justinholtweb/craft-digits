@@ -1,0 +1,27 @@
+{#
+  The settings sidebar.
+
+  Digits' configuration is genuinely several subjects — how files are delivered, how keys are
+  shaped, what the account page is called, and a whole tax apparatus — and one scrolling pane is how
+  nobody ever finds the delivery method.
+#}
+<nav>
+    <ul>
+        {% set items = [
+            { key: 'downloads', label: 'Downloads & delivery'|t('digits'), url: 'digits/settings/downloads' },
+            { key: 'licenses', label: 'Licences'|t('digits'), url: 'digits/settings/licenses' },
+            { key: 'portal', label: 'Customer portal'|t('digits'), url: 'digits/settings/portal' },
+            { key: 'invoicing', label: 'Invoicing'|t('digits'), url: 'digits/settings/invoicing' },
+            { key: 'vat', label: 'VAT rates'|t('digits'), url: 'digits/settings/vat' },
+            { key: 'fields', label: 'Fields'|t('digits'), url: 'digits/settings/fields' },
+        ] %}
+
+        {% for item in items %}
+            <li>
+                <a href="{{ url(item.url) }}" class="{{ (selectedItem ?? '') == item.key ? 'sel' }}">
+                    {{ item.label }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</nav>

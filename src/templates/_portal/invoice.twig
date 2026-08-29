@@ -1,0 +1,10 @@
+{% extends 'digits/_portal/_layout' %}
+
+{% block title %}{{ invoice.number }}{% endblock %}
+
+{% block body %}
+    <p><a href="{{ craft.digits.portalUrl() }}">{{ '← Everything you have bought'|t('digits') }}</a></p>
+
+    {# The same document the control panel prints, so the two can never disagree. #}
+    {% include 'digits/invoices/_document' with { invoice: invoice, settings: settings } only %}
+{% endblock %}

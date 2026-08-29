@@ -1,0 +1,11 @@
+{% extends '_layouts/elementindex' %}
+
+{% set title = 'Downloads'|t('digits') %}
+{% set elementType = 'justinholtweb\\digits\\elements\\Download' %}
+{% set selectedSubnavItem = 'downloads' %}
+
+{% block actionButton %}
+    {% if canCreate %}
+        <a href="{{ url('digits/downloads/new') }}" class="btn submit add icon">{{ 'New download'|t('digits') }}</a>
+    {% endif %}
+{% endblock %}

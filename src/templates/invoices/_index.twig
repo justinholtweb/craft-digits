@@ -1,0 +1,77 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set title = 'Invoices'|t('digits') %}
+{% set selectedSubnavItem = 'invoices' %}
+
+{% block actionButton %}
+    <a href="{{ url('digits/invoices/report') }}" class="btn">{{ 'VAT return'|t('digits') }}</a>
+{% endblock %}
+
+{% block content %}
+    {% if discrepancyCount > 0 %}
+        <div class="readable">
+            <blockquote class="note warning">
+                <p>
+                    {{ '{count} invoices charged a different amount of tax from the treatment Digits determined. That is not necessarily wrong — it usually means a tax rule in Commerce and the place-of-supply rules disagree — but each one is worth a look.'|t('digits', { count: discrepancyCount }) }}
+                    <a href="{{ url('digits/invoices', { discrepancies: 1 }) }}">{{ 'Show them'|t('digits') }}</a>
+                </p>
+            </blockquote>
+        </div>
+    {% endif %}
+
+    <form method="get" class="flex" style="margin: 18px 0; align-items: flex-end; gap: 12px;">
+        {{ forms.text({ name: 'search', value: criteria.search ?? '', placeholder: 'Number, email or order'|t('digits') }) }}
+        {{ forms.select({
+            name: 'treatment',
+            value: criteria.treatment ?? '',
+            options: treatments|keys|map(k => { label: treatments[k], value: k }),
+        }) }}
+        <button type="submit" class="btn">{{ 'Filter'|t('digits') }}</button>
+    </form>
+
+    {% if invoices is empty %}
+        <p class="light">{{ 'No invoices yet.'|t('digits') }}</p>
+    {% else %}
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ 'Number'|t('digits') }}</th>
+                    <th>{{ 'Issued'|t('digits') }}</th>
+                    <th>{{ 'Customer'|t('digits') }}</th>
+                    <th>{{ 'Country'|t('digits') }}</th>
+                    <th>{{ 'Treatment'|t('digits') }}</th>
+                    <th class="rightalign">{{ 'Net'|t('digits') }}</th>
+                    <th class="rightalign">{{ 'VAT'|t('digits') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                    <tr>
+                        <td>
+                            <a href="{{ url('digits/invoices/' ~ invoice.id) }}"><code>{{ invoice.number }}</code></a>
+                            {% if invoice.isCreditNote %}<span class="light">{{ 'credit note'|t('digits') }}</span>{% endif %}
+                        </td>
+                        <td class="light">{{ invoice.dateIssued|date('short') }}</td>
+                        <td>{{ invoice.customerName ?: invoice.customerEmail }}</td>
+                        <td class="light">{{ invoice.buyerCountry ?: '—' }}</td>
+                        <td>
+                            {% if invoice.hasDiscrepancy %}<span class="status orange"></span>{% endif %}
+                            <span>{{ invoice.treatmentLabel }}</span>
+                        </td>
+                        <td class="rightalign">{{ invoice.netAmount|number_format(2) }}</td>
+                        <td class="rightalign">{{ invoice.vatAmount|number_format(2) }} <span class="light">{{ invoice.currency }}</span></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if pageCount > 1 %}
+            <div class="pagination" style="margin-top: 18px;">
+                {% if page > 1 %}<a class="btn" href="{{ url('digits/invoices', criteria|merge({ page: page - 1 })) }}">{{ '« Previous'|t('app') }}</a>{% endif %}
+                <span class="light">{{ 'Page {page} of {total}'|t('digits', { page: page, total: pageCount }) }}</span>
+                {% if page < pageCount %}<a class="btn" href="{{ url('digits/invoices', criteria|merge({ page: page + 1 })) }}">{{ 'Next »'|t('app') }}</a>{% endif %}
+            </div>
+        {% endif %}
+    {% endif %}
+{% endblock %}
