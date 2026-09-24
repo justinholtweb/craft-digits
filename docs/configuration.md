@@ -1,4 +1,9 @@
-# Configuration
+---
+title: Configuration
+slug: configuration
+order: 20
+summary: The five settings screens — delivery, licences, the portal, invoicing and VAT — and what each default is for.
+---
 
 Digits' settings are five screens, because they are five subjects. Everything here is at
 **Digits → Settings**.
@@ -80,7 +85,7 @@ customer.
 
 ## Invoicing (Pro)
 
-See [EU VAT and invoicing](vat.md).
+See [EU VAT and invoicing](https://justinholt.com/plugins/craft-digits/docs/vat).
 
 ## Fields
 

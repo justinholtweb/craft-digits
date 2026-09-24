@@ -1,4 +1,9 @@
-# EU VAT and invoicing
+---
+title: EU VAT and invoicing
+slug: vat
+order: 50
+summary: Place-of-supply treatment, VAT ID evidence, snapshot invoices, credit notes and the OSS return.
+---
 
 *Digits Pro, and off until you switch it on.*
 

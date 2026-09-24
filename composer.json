@@ -16,6 +16,7 @@
         "invoicing"
     ],
     "license": "proprietary",
+    "homepage": "https://justinholt.com/plugins/craft-digits",
     "authors": [
         {
             "name": "Justin Holt",
@@ -23,7 +24,10 @@
         }
     ],
     "support": {
-        "email": "justin@justinholt.com"
+        "email": "justin@justinholt.com",
+        "docs": "https://justinholt.com/plugins/craft-digits/docs",
+        "source": "https://github.com/justinholtweb/craft-digits",
+        "issues": "https://github.com/justinholtweb/craft-digits/issues"
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
@@ -51,7 +55,7 @@
         "handle": "digits",
         "developer": "Justin Holt",
         "developerUrl": "https://justinholt.com",
-        "documentationUrl": "https://github.com/justinholtweb/craft-digits/blob/main/README.md",
+        "documentationUrl": "https://justinholt.com/plugins/craft-digits/docs",
         "changelogUrl": "https://raw.githubusercontent.com/justinholtweb/craft-digits/main/CHANGELOG.md",
         "class": "justinholtweb\\digits\\Plugin"
     }

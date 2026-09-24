@@ -1,4 +1,9 @@
-# Licensing and the activation API
+---
+title: Licensing and the activation API
+slug: licensing
+order: 40
+summary: Licence keys, activation seats and the four API endpoints your customer's software calls.
+---
 
 *Licence keys, seats and the API are Digits Pro. Lite still issues a licence for every purchase —
 that licence is what makes a download link work — it just has no key for software to check.*

@@ -1,4 +1,14 @@
-# FAQ
+---
+title: FAQ
+slug: faq
+order: 70
+summary: Commerce, digital-products, signed URLs, refunds and VAT — the questions worth answering first.
+---
+
+### What does it cost?
+
+Lite is free, with no cap on downloads or buyers. Pro is $129 with a $99/year renewal, and adds
+licence keys, activation seats, the portal, release notices, update gating and VAT invoicing.
 
 ### Do I need Commerce?
 
@@ -73,7 +83,7 @@ counted, and Digits is honest that what is behind the URL is only as private as 
 
 ### Will Digits charge the right VAT?
 
-Digits does not charge VAT at all — see [EU VAT and invoicing](vat.md). It determines the correct
+Digits does not charge VAT at all — see [EU VAT and invoicing](https://justinholt.com/plugins/craft-digits/docs/vat). It determines the correct
 treatment, prints it, records what Commerce actually took, and flags the invoices where the two
 disagree.
 

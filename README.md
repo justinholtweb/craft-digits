@@ -42,11 +42,12 @@ links, capping how many times each buyer may take them, versioning them and revo
 money goes back are all in Lite, uncapped — there is no limit on the number of downloads or the
 number of buyers.
 
-**Pro** is the software vendor's half: licence keys that machines can check, activation seats, the
+**Pro** ($129, then $99/year for updates) is the software vendor's half: licence keys that machines can check, activation seats, the
 front-end portal, release notices, update gating and the VAT paperwork.
 
 | | Lite | Pro |
 |---|---|---|
+| Price | Free | $129 + $99/year |
 | Downloads, versions, expiring links, limits | ✓ | ✓ |
 | Licences as entitlements, refund revocation | ✓ | ✓ |
 | Download activity log | ✓ | ✓ |
@@ -141,6 +142,8 @@ alone unless a human has confirmed the number.
 
 ## Documentation
 
+Full documentation: <https://justinholt.com/plugins/craft-digits/docs>
+
 - [Installation](docs/installation.md)
 - [Configuration](docs/configuration.md)
 - [Usage](docs/usage.md)
@@ -151,4 +154,4 @@ alone unless a human has confirmed the number.
 
 ## Licence
 
-See [LICENSE.md](LICENSE.md).
+The Craft License. See [LICENSE.md](LICENSE.md).

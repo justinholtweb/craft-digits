@@ -1,4 +1,9 @@
-# Usage
+---
+title: Usage
+slug: usage
+order: 30
+summary: Downloads, versions, files and licences, attaching them to what you sell, and the Twig API.
+---
 
 ## The shape of the thing
 

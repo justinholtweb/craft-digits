@@ -152,6 +152,10 @@ Thirteen tables. The ones worth explaining are explained in `src/migrations/Inst
 - **`switchEdition()` writes to project config**, and a script that writes to project config twice
   in a run hits `StaleResourceException` on the second write. The checks set `$plugin->edition`
   in-process instead and restore it in the `finally`.
+- **A raw `Query` row's date is a UTC string, and `|datetime` reads a string as the site's own zone.**
+  The activity log is read as rows, not models, so every timestamp on the log screen and the licence
+  screen was shown hours off until `Log::find()` started converting `dateCreated` with
+  `DateTimeHelper::toDateTime()`. Anything else read as raw rows needs the same.
 - **`savePluginSettings()` replaces rather than merges**, so a multi-screen settings controller has
   to start from the live model and write the whole thing back or it silently wipes the other
   screens. Same as the Trackr trap.

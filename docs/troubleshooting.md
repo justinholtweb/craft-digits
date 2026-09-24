@@ -1,4 +1,9 @@
-# Troubleshooting
+---
+title: Troubleshooting
+slug: troubleshooting
+order: 60
+summary: What to check when a purchase issues nothing, a link is refused or an invoice disagrees with the order.
+---
 
 ## Nothing happens when somebody buys
 
@@ -105,7 +110,7 @@ to fix.
 
 That is the flag doing its job, and it is usually right that the two differ: a tax rule in Commerce
 and the place-of-supply rules disagree. Digits does not silently restate the charge — see
-[EU VAT and invoicing](vat.md). Look at the invoice's detail screen, which shows both figures and
+[EU VAT and invoicing](https://justinholt.com/plugins/craft-digits/docs/vat). Look at the invoice's detail screen, which shows both figures and
 the evidence behind the treatment.
 
 ## The VAT screen says the rates were seeded a long time ago

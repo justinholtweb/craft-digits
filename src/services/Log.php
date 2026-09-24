@@ -8,6 +8,7 @@ use Craft;
 use craft\base\Component;
 use craft\db\Query;
 use craft\db\Table as CraftTable;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use DateTime;
 use DateTimeZone;
@@ -90,15 +91,23 @@ class Log extends Component
 
     /**
      * @return array[] Raw rows, newest first. The log is read as a table and never hydrated into
-     *                 models, because nothing ever mutates it.
+     *                 models, because nothing ever mutates it — but `dateCreated` is turned into a
+     *                 `DateTime`, because the column is UTC and Twig's `|datetime` reads a bare
+     *                 string as the site's own time zone.
      */
     public function find(array $criteria = [], int $limit = 100, int $offset = 0): array
     {
-        return $this->baseQuery($criteria)
+        $rows = $this->baseQuery($criteria)
             ->orderBy(['digits_log.id' => SORT_DESC])
             ->limit($limit)
             ->offset($offset)
             ->all();
+
+        foreach ($rows as &$row) {
+            $row['dateCreated'] = DateTimeHelper::toDateTime($row['dateCreated']) ?: null;
+        }
+
+        return $rows;
     }
 
     public function count(array $criteria = []): int

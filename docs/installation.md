@@ -1,4 +1,9 @@
-# Installation
+---
+title: Installation
+slug: installation
+order: 10
+summary: Requirements, install, the Lite and Pro editions, and your first gated download.
+---
 
 ## Requirements
 
@@ -15,6 +20,13 @@ php craft plugin/install digits
 
 Installing creates thirteen tables and seeds the 27 EU standard VAT rates with an effective date.
 It creates no downloads and no licences: nothing on your site changes until you make one.
+
+## Editions
+
+**Lite is free** and is a working download shop: selling files, expiring links, download limits,
+versions and refund revocation, uncapped. **Pro is $129, with a $99/year renewal for updates**, and
+adds licence keys, activation seats, the customer portal, release notices, update gating and the VAT
+paperwork.
 
 ## Switching to Pro
 
